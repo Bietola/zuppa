@@ -1,0 +1,19 @@
+Conf(
+    cooks: [
+        (
+            name: "Chicco",
+            role: "Cook",
+        ),
+        (
+            name: "Dani",
+            role: "Cook",
+        ),
+        (
+            name: "Stefano"
+            role: "Cook",
+        ),
+    ],
+    judges: [
+          
+    ]
+)
