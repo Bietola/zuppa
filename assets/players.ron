@@ -1,19 +1,52 @@
-Conf(
-    cooks: [
+(
+    // Cooks.
+    [
         (
             name: "Chicco",
-            role: "Cook",
+            contr: Player,
+        ),
+        (
+            name: "Stefano",
+            contr: Player,
         ),
         (
             name: "Dani",
-            role: "Cook",
+            contr: Cpu,
         ),
         (
-            name: "Stefano"
-            role: "Cook",
+            name: "Sans",
+            contr: Cpu,
         ),
     ],
-    judges: [
-          
+    // Judges.
+    [
+        (
+            name: "Sans",
+        ),
+        (
+            name: "Doge",
+            article: "Il",
+        ),
+        (
+            name: "Ratto",
+            article: "Il",
+        ),
+        (
+            name: "Duce",
+            article: "Il",
+        ),
+        (
+            name: "Stoick",
+        ),
+        (
+            name: "Formichiere",
+            article: "Il",
+        ),
+        (
+            name: "Shaw",
+        ),
+        (
+            name: "Ibra",
+        ),
     ]
 )
