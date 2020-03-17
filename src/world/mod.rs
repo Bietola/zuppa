@@ -6,7 +6,6 @@ use itertools::Itertools;
 use ron;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::fmt;
 use zuppa::*;
 use std::iter::FromIterator;
 
@@ -52,7 +51,7 @@ pub type Score = u32;
 /// The player ranking
 #[derive(Clone, Default, Deserialize)]
 pub struct Ranking {
-    pub ranking: HashMap<CookKey, Score>,
+    pub data: HashMap<CookKey, Score>,
 }
 
 impl Ranking {
@@ -62,10 +61,10 @@ impl Ranking {
 
     /// For showing the ranking on the screen.
     pub fn to_pretty_string(&self, world: &World) -> String {
-        self.ranking
+        self.data
             .iter()
             // Sort by scores
-            .sorted_by(|lhs, rhs| Ord::cmp(lhs.1, rhs.1))
+            .sorted_by(|lhs, rhs| Ord::cmp(rhs.1, lhs.1))
             .map(|(&cook_k, &score)| format!("{}: {}", score, world.cooks[cook_k].name))
             .collect::<Vec<_>>()
             .join("\n")
@@ -75,7 +74,7 @@ impl Ranking {
 impl FromIterator<(CookKey, Score)> for Ranking {
     fn from_iter<I: IntoIterator<Item = (CookKey, Score)>>(iter: I) -> Self {
         Ranking {
-            ranking: iter.into_iter().collect(),
+            data: iter.into_iter().collect(),
         }
     }
 }

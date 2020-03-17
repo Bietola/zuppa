@@ -46,12 +46,13 @@ fn slaughter(world: &mut World, v: &mut impl View) {
 
             msgln!(v);
 
-            (cook_i, score)
+            (cook_i, world.ranking.data.get(&cook_i).unwrap_or(&0) + score)
         })
         .collect::<Ranking>();
 
     // Show new raking compared to old one.
     msgln!(v, "{}", world.ranking.to_pretty_string(world));
+    msgln!(v);
 
     // Cook with the lowest raking is eliminated.
     println!("WIP: Elimination...");
@@ -67,7 +68,11 @@ fn cook_interaction(v: &mut (impl View), world: &World, judge_k: JudgeKey, cook_
 
     match cook.contr {
         Contr::Cpu => {
-            unimplemented!()
+            // TODO: use more advanced CPUs.
+            Zuppa {
+                author: cook_k,
+                ingredients: vec!["silicon".into()],
+            }
         },
         Contr::Player => {
             // Zuppa accumulator.
