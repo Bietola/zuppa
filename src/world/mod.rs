@@ -2,10 +2,13 @@ pub mod builder;
 pub mod zuppa;
 
 use crate::phrases::*;
+use itertools::Itertools;
 use ron;
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fmt;
 use zuppa::*;
+use std::iter::FromIterator;
 
 /// Controlling entity.
 #[derive(Deserialize)]
@@ -46,12 +49,43 @@ pub type JudgeKey = usize;
 /// The score given to cooks from judges.
 pub type Score = u32;
 
+/// The player ranking
+#[derive(Clone, Default, Deserialize)]
+pub struct Ranking {
+    pub ranking: HashMap<CookKey, Score>,
+}
+
+impl Ranking {
+    fn empty() -> Self {
+        Default::default()
+    }
+
+    /// For showing the ranking on the screen.
+    pub fn to_pretty_string(&self, world: &World) -> String {
+        self.ranking
+            .iter()
+            // Sort by scores
+            .sorted_by(|lhs, rhs| Ord::cmp(lhs.1, rhs.1))
+            .map(|(&cook_k, &score)| format!("{}: {}", score, world.cooks[cook_k].name))
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+}
+
+impl FromIterator<(CookKey, Score)> for Ranking {
+    fn from_iter<I: IntoIterator<Item = (CookKey, Score)>>(iter: I) -> Self {
+        Ranking {
+            ranking: iter.into_iter().collect(),
+        }
+    }
+}
+
 /// Entire state of the game world.
 #[derive(Deserialize)]
 pub struct World {
     pub cooks: Vec<Cook>,
     pub judges: Vec<Judge>,
-    pub ranking: HashMap<CookKey, Score>,
+    pub ranking: Ranking,
     pub default_phrases: Phrases,
 }
 
@@ -60,7 +94,7 @@ impl World {
         World {
             cooks: vec![],
             judges: vec![],
-            ranking: HashMap::new(),
+            ranking: Ranking::empty(),
             default_phrases: Phrases::default(),
         }
     }

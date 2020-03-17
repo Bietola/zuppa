@@ -48,10 +48,10 @@ fn slaughter(world: &mut World, v: &mut impl View) {
 
             (cook_i, score)
         })
-        .collect();
+        .collect::<Ranking>();
 
     // Show new raking compared to old one.
-    // TODO: WIP: show_raking(v, old_ranking, world.raking);
+    msgln!(v, "{}", world.ranking.to_pretty_string(world));
 
     // Cook with the lowest raking is eliminated.
     println!("WIP: Elimination...");
