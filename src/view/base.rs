@@ -42,6 +42,10 @@ macro_rules! msg {
 
 #[macro_export]
 macro_rules! msgln {
+    ($view:expr) => {
+        $view.show_msgln("");
+    };
+
     ($view:expr, $fmt_str:expr) => {
         $view.show_msgln($fmt_str)
     };

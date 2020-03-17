@@ -41,6 +41,25 @@ impl Phrases {
                 .collect(),
         }
     }
+
+    /// Use world info to output and deparameterize the correct phrase.
+    pub fn generate(&self, world: &World, judge_k: JudgeKey, cook_k: CookKey, score: Score) -> String {
+        for phrase in &self.phrases {
+            if score < phrase.0 {
+                return Self::generate_impl(&phrase.1, world, judge_k, cook_k, score);
+            }
+        }
+
+        // Fall back on default phrase.
+        format!("{} is extatic...", world.judges[judge_k].name)
+    }
+
+    /// Actual phrase deparameterization heavy lifting.
+    #[allow(unused_variables)]
+    pub fn generate_impl(phrase: &str, world: &World, judge_k: JudgeKey, cook_k: CookKey, score: Score) -> String {
+        // TODO: actually do this...
+        phrase.into()
+    }
 }
 
 #[cfg(test)]
