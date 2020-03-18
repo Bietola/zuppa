@@ -77,6 +77,7 @@ impl Phrases {
     }
 
     /// Actual phrase deparameterization heavy lifting.
+    /// TODO: Clean this shit...
     pub fn generate_impl(phrase: &str, world: &World, context: Context) -> String {
         // TODO: Use prelude thing.
         use wc::parse::*;
@@ -135,7 +136,10 @@ impl Phrases {
             out.into_iter()
                 .map(|(word, wspace)| format!("{}{}", word, wspace.into_iter().collect::<String>()))
         })
-        .map(|s| s.into_iter().collect());
+        .map(|s| {
+            #[allow(clippy::all)] // TODO: Report false positive.
+            s.into_iter().collect()
+        });
 
         phrase_parser.parse(phrase).expect("Malformed phrase").1
     }
