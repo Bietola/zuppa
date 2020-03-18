@@ -1,6 +1,7 @@
 use crate::view::base::*;
 use crate::world::{zuppa::*, *};
 use crate::{msg, msgln};
+use single::Single;
 use text_io::read;
 
 // Commands used in zuppa cooking interaction.
@@ -63,11 +64,17 @@ fn slaughter(world: &mut World, v: &mut impl View) {
             .ranking
             .data
             .iter()
-            .min_by_key(|(_ , &score)| score)
+            .min_by_key(|(_, &score)| score)
             .expect("Could not find cook with min score to eliminate")
-            .0
+            .0,
     );
 
+    // Game is over if only one cook is left.
+    if world.cooks_in_game.len() == 1 {
+        end(world, v);
+    }
+
+    // Go on otherwise.
     slaughter(world, v);
 }
 
@@ -120,4 +127,16 @@ fn judge_interaction(v: &mut (impl View), world: &World, judge_k: JudgeKey, zupp
     msgln!(v, "{} [{}]", judgement, score);
 
     score
+}
+
+fn end(world: &World, v: &mut impl View) {
+    let winner = &world.cooks[*world
+        .cooks_in_game
+        .iter()
+        .single()
+        .expect("Wrong number of winners at game end")];
+
+    msgln!(v, "The winner of this Zuppa tournament is: {}", winner.name);
+
+    // No state transition means program termination.
 }
