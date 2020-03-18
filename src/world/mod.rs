@@ -107,6 +107,6 @@ impl World {
     }
 
     pub fn eliminate_cook(&mut self, cook_k: CookKey) {
-        self.cooks_in_game.remove(cook_k);
+        self.cooks_in_game.retain(|&ele| ele != cook_k);
     }
 }

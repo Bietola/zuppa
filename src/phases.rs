@@ -32,6 +32,7 @@ fn slaughter(world: &mut World, v: &mut impl View) {
     msgln!(v, "Let the slaughter begin!");
 
     // Keep old ranking for later comparison.
+    // TODO: use this for showing ranking diff
     let old_ranking = world.ranking.clone();
 
     // Every cooks is challenged to cook a zuppa and the randking is updated with their new score.
@@ -59,23 +60,26 @@ fn slaughter(world: &mut World, v: &mut impl View) {
     msgln!(v);
 
     // Cook with the lowest score is eliminated.
-    world.eliminate_cook(
+    let eliminee = 
         *world
             .ranking
             .data
             .iter()
             .min_by_key(|(_, &score)| score)
             .expect("Could not find cook with min score to eliminate")
-            .0,
-    );
+            .0;
+    msgln!(v, "{} was eliminated...", world.cooks[eliminee].name);
+    world.eliminate_cook(eliminee);
+    msgln!(v);
 
     // Game is over if only one cook is left.
     if world.cooks_in_game.len() == 1 {
         end(world, v);
-    }
 
     // Go on otherwise.
-    slaughter(world, v);
+    } else {
+        slaughter(world, v);
+    }
 }
 
 /// Make a cook cook a zuppa for a particular judge.
