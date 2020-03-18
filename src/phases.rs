@@ -1,3 +1,4 @@
+use crate::phrases;
 use crate::view::base::*;
 use crate::world::{zuppa::*, *};
 use crate::{msg, msgln};
@@ -33,7 +34,7 @@ fn slaughter(world: &mut World, v: &mut impl View) {
 
     // Keep old ranking for later comparison.
     // TODO: use this for showing ranking diff
-    let old_ranking = world.ranking.clone();
+    let _old_ranking = world.ranking.clone();
 
     // Every cooks is challenged to cook a zuppa and the randking is updated with their new score.
     world.ranking = world
@@ -60,16 +61,15 @@ fn slaughter(world: &mut World, v: &mut impl View) {
     msgln!(v);
 
     // Cook with the lowest score is eliminated.
-    let eliminee = 
-        *world
-            .ranking
-            .data
-            .iter()
-            .min_by_key(|(_, &score)| score)
-            .expect("Could not find cook with min score to eliminate")
-            .0;
-    msgln!(v, "{} was eliminated...", world.cooks[eliminee].name);
+    let eliminee = *world
+        .ranking
+        .data
+        .iter()
+        .min_by_key(|(_, &score)| score)
+        .expect("Could not find cook with min score to eliminate")
+        .0;
     world.eliminate_cook(eliminee);
+    msgln!(v, "{} was eliminated...", world.cooks[eliminee].name);
     msgln!(v);
 
     // Game is over if only one cook is left.
@@ -120,13 +120,18 @@ fn cook_interaction(v: &mut impl View, world: &World, judge_k: JudgeKey, cook_k:
 }
 
 /// Make a judge judge a particular zuppa from a particular cook.
-fn judge_interaction(v: &mut (impl View), world: &World, judge_k: JudgeKey, zuppa: Zuppa) -> Score {
+fn judge_interaction(v: &mut impl View, world: &World, judge_k: JudgeKey, zuppa: Zuppa) -> Score {
     let judge = &world.judges[judge_k];
 
     // Judgement score is calculated and used for extracting the right judgement catchphrase.
     // Said phrase (which is stored generically) needs to be parameterized with the cook's and the judge's info.
     let score = judge.judge_zuppa(world, &zuppa);
-    let judgement = judge.phrases.generate(world, judge_k, zuppa.author, score);
+    let ctx = phrases::Context {
+        judge_k,
+        cook_k: zuppa.author,
+        score,
+    };
+    let judgement = judge.phrases.generate(world, ctx);
 
     msgln!(v, "{} [{}]", judgement, score);
 

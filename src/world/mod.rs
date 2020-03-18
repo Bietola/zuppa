@@ -8,6 +8,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use zuppa::*;
 use std::iter::FromIterator;
+use crate::noun::{Gender, Noun};
 
 /// Controlling entity.
 #[derive(Deserialize)]
@@ -21,6 +22,13 @@ pub enum Contr {
 pub struct Cook {
     pub name: String,
     pub contr: Contr,
+    pub gender: Gender,
+}
+
+impl Noun for Cook {
+    fn get_gender(&self) -> Gender {
+        self.gender
+    }
 }
 
 pub type CookKey = usize;

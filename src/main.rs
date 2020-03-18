@@ -2,6 +2,7 @@ mod world;
 mod phrases;
 mod phases;
 mod view;
+mod noun;
 
 use view::simple_term::*;
 

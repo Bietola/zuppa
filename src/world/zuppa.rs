@@ -9,7 +9,7 @@ pub struct Zuppa {
 }
 
 impl Zuppa {
-    pub fn empty() -> Self{
+    pub fn _empty() -> Self{
         Default::default()
     }
 }

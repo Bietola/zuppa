@@ -3,47 +3,30 @@
     [
         (
             name: "Chicco",
+            gender: Male,
             contr: Player,
         ),
         (
             name: "Stefano",
+            gender: Male,
             contr: Player,
         ),
         (
             name: "Dani",
+            gender: Male,
             contr: Cpu,
         ),
         (
             name: "Sans",
+            gender: Male,
             contr: Cpu,
         ),
     ],
     // Judges.
     [
         (
-            name: "Sans",
-        ),
-        (
-            name: "Doge",
-            article: "Il",
-        ),
-        (
             name: "Ratto",
             article: "Il",
-        ),
-        (
-            name: "Duce",
-            article: "Il",
-        ),
-        (
-            name: "Stoick",
-        ),
-        (
-            name: "Formichiere",
-            article: "Il",
-        ),
-        (
-            name: "Shaw",
         ),
         (
             name: "Ibra",
