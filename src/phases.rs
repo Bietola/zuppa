@@ -1,7 +1,7 @@
-use text_io::read;
-use crate::world::{zuppa::*, *};
 use crate::view::base::*;
-use crate::{msgln, msg};
+use crate::world::{zuppa::*, *};
+use crate::{msg, msgln};
+use text_io::read;
 
 // Commands used in zuppa cooking interaction.
 const EXIT_COMMAND: &str = "exit";
@@ -34,10 +34,10 @@ fn slaughter(world: &mut World, v: &mut impl View) {
     let old_ranking = world.ranking.clone();
 
     // Every cooks is challenged to cook a zuppa and the randking is updated with their new score.
-    world.ranking = world.cooks.iter()
-        .enumerate()
-        .map(|(i, _)| i)
-        .map(|cook_i| {
+    world.ranking = world
+        .cooks_in_game
+        .iter()
+        .map(|&cook_i| {
             // Judge is picked to taste the contendent's zuppa.
             let judge_i = world.pick_random_judge();
 
@@ -46,7 +46,10 @@ fn slaughter(world: &mut World, v: &mut impl View) {
 
             msgln!(v);
 
-            (cook_i, world.ranking.data.get(&cook_i).unwrap_or(&0) + score)
+            (
+                cook_i,
+                world.ranking.data.get(&cook_i).unwrap_or(&0) + score,
+            )
         })
         .collect::<Ranking>();
 
@@ -54,13 +57,22 @@ fn slaughter(world: &mut World, v: &mut impl View) {
     msgln!(v, "{}", world.ranking.to_pretty_string(world));
     msgln!(v);
 
-    // Cook with the lowest raking is eliminated.
-    println!("WIP: Elimination...");
+    // Cook with the lowest score is eliminated.
+    world.eliminate_cook(
+        *world
+            .ranking
+            .data
+            .iter()
+            .min_by_key(|(_ , &score)| score)
+            .expect("Could not find cook with min score to eliminate")
+            .0
+    );
+
     slaughter(world, v);
 }
 
 /// Make a cook cook a zuppa for a particular judge.
-fn cook_interaction(v: &mut (impl View), world: &World, judge_k: JudgeKey, cook_k: CookKey) -> Zuppa {
+fn cook_interaction(v: &mut impl View, world: &World, judge_k: JudgeKey, cook_k: CookKey) -> Zuppa {
     let cook = &world.cooks[cook_k];
     let judge = &world.judges[judge_k];
 
@@ -73,7 +85,7 @@ fn cook_interaction(v: &mut (impl View), world: &World, judge_k: JudgeKey, cook_
                 author: cook_k,
                 ingredients: vec!["silicon".into()],
             }
-        },
+        }
         Contr::Player => {
             // Zuppa accumulator.
             let mut zuppa = Zuppa {
@@ -88,7 +100,7 @@ fn cook_interaction(v: &mut (impl View), world: &World, judge_k: JudgeKey, cook_
                 match command.as_str() {
                     EXIT_COMMAND => return zuppa,
 
-                    // Any non-special keyword is treated as an ingredient. 
+                    // Any non-special keyword is treated as an ingredient.
                     ingredient => zuppa.ingredients.push(ingredient.into()),
                 }
             }

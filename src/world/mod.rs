@@ -83,6 +83,7 @@ impl FromIterator<(CookKey, Score)> for Ranking {
 #[derive(Deserialize)]
 pub struct World {
     pub cooks: Vec<Cook>,
+    pub cooks_in_game: Vec<CookKey>,
     pub judges: Vec<Judge>,
     pub ranking: Ranking,
     pub default_phrases: Phrases,
@@ -92,6 +93,7 @@ impl World {
     pub fn new() -> World {
         World {
             cooks: vec![],
+            cooks_in_game: vec![],
             judges: vec![],
             ranking: Ranking::empty(),
             default_phrases: Phrases::default(),
@@ -102,5 +104,9 @@ impl World {
     pub fn pick_random_judge(&self) -> JudgeKey {
         use rand::Rng;
         rand::thread_rng().gen_range(0, self.judges.len())
+    }
+
+    pub fn eliminate_cook(&mut self, cook_k: CookKey) {
+        self.cooks_in_game.remove(cook_k);
     }
 }

@@ -24,6 +24,7 @@ impl Builder {
             ron::de::from_str(&contents).expect("Could not parse players file.");
 
         self.world.cooks = cooks;
+        self.world.cooks_in_game = (0..self.world.cooks.len()).into_iter().collect();
         self.world.judges = judges;
 
         self
@@ -53,7 +54,8 @@ impl Builder {
                 .to_owned();
 
             // To avoid repetition.
-            let parse_phrases_file = || Phrases::parse(&fs::read_to_string(phrases_file.path()).unwrap());
+            let parse_phrases_file =
+                || Phrases::parse(&fs::read_to_string(phrases_file.path()).unwrap());
 
             // The file which is identified as the default phrases file is handled differently.
             if judge_id == Self::DEFAULT_PHRASES_FILE_NAME {
