@@ -3,8 +3,15 @@ use serde::Deserialize;
 /// Simple gender enum.
 #[derive(Deserialize, Clone, Copy)]
 pub enum Gender {
+    Neuter,
     Female,
     Male,
+}
+
+impl Default for Gender {
+    fn default() -> Self {
+        Self::Neuter
+    }
 }
 
 /// Noun here is intended in the grammatical sense.

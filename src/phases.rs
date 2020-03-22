@@ -1,42 +1,79 @@
+use super::connection::Connection;
+use super::world::{zuppa::*, *};
 use crate::phrases;
-use crate::view::base::*;
-use crate::world::{zuppa::*, *};
-use crate::{msg, msgln};
 use single::Single;
+use std::collections::HashMap;
 use text_io::read;
+use super::netmsg::NetMsg;
 
 // Commands used in zuppa cooking interaction.
 const EXIT_COMMAND: &str = "exit";
 
+/****************************/
+/* Net connection utilities */
+/****************************/
+
+// All connections indexed by their character keys for quick retrieval in game.
+type Connections = HashMap<ActorKey, Connection>;
+
+// Macros for convient simple message broadcasting and sending.
+macro_rules! msg {
+    ($connections:expr, $fmt_str:expr, $( $fmt_arg:expr ),+) => {
+        $connections.values_mut().map(|c| c.send(NetMsg::Msg(format!($fmt_str, $($fmt_arg,)*))));
+    };
+
+    ($connections:expr, $fmt_str:expr) => {
+        msg!($connections, "{}", $fmt_str);
+    };
+}
+
+macro_rules! msgln {
+    ($connections:expr, $fmt_str:expr, $( $fmt_arg:expr ),+) => {
+        msg!($connections, concat!(stringify!($fmt_str), "\n"), $( $fmt_arg ),*);
+    };
+
+    ($connections:expr, $fmt_str:expr) => {
+        msgln!($connections, "{}", $fmt_str);
+    };
+
+    ($connections:expr) => {
+        msgln!($connections, "");
+    };
+}
+
+/***************/
+/* Game phases */
+/***************/
+
 /// Game is introduced bombastically.
-pub fn intro(world: &mut World, v: &mut impl View) {
-    msgln!(v, "Welcome to zuppa!");
-    msgln!(v);
+pub fn intro(world: &mut World, cs: &mut Connections) {
+    msg!(cs, "Welcome to zuppa!");
+    msgln!(cs);
 
-    msgln!(v, "The cooks:");
+    msgln!(cs, "The cooks:");
     for cook in &world.cooks {
-        msgln!(v, "{}", cook.name);
+        msgln!(cs, "{}", cook.name);
     }
-    msgln!(v);
+    msgln!(cs);
 
-    msgln!(v, "The judges:");
+    msgln!(cs, "The judges:");
     for judge in &world.judges {
-        msgln!(v, "{}", judge.name);
+        msgln!(cs, "{}", judge.name);
     }
-    msgln!(v);
+    msgln!(cs);
 
-    slaughter(world, v);
+    slaughter(world, cs);
 }
 
 /// Phase where all the gameplay takes place, for now.
-fn slaughter(world: &mut World, v: &mut impl View) {
-    msgln!(v, "Let the slaughter begin!");
+fn slaughter(world: &mut World, cs: &mut Connections) {
+    msgln!(cs, "Let the slaughter begin!");
 
     // Keep old ranking for later comparison.
     // TODO: use this for showing ranking diff
     let _old_ranking = world.ranking.clone();
 
-    // Every cooks is challenged to cook a zuppa and the randking is updated with their new score.
+    // Ecs cooks is challenged to cook a zuppa and the randking is updated with their new score.
     world.ranking = world
         .cooks_in_game
         .iter()
@@ -44,10 +81,10 @@ fn slaughter(world: &mut World, v: &mut impl View) {
             // Judge is picked to taste the contendent's zuppa.
             let judge_i = world.pick_random_judge();
 
-            let zuppa = cook_interaction(v, world, judge_i, cook_i);
-            let score = judge_interaction(v, world, judge_i, zuppa);
+            let zuppa = cook_interaction(cs, world, judge_i, cook_i);
+            let score = judge_interaction(cs, world, judge_i, zuppa);
 
-            msgln!(v);
+            msgln!(cs);
 
             (
                 cook_i,
@@ -57,8 +94,8 @@ fn slaughter(world: &mut World, v: &mut impl View) {
         .collect::<Ranking>();
 
     // Show new raking compared to old one.
-    msgln!(v, "{}", world.ranking.to_pretty_string(world));
-    msgln!(v);
+    msgln!(cs, "{}", world.ranking.to_pretty_string(world));
+    msgln!(cs);
 
     // Cook with the lowest score is eliminated.
     let eliminee = *world
@@ -69,29 +106,29 @@ fn slaughter(world: &mut World, v: &mut impl View) {
         .expect("Could not find cook with min score to eliminate")
         .0;
     world.eliminate_cook(eliminee);
-    msgln!(v, "{} was eliminated...", world.cooks[eliminee].name);
-    msgln!(v);
+    msgln!(cs, "{} was eliminated...", world.cooks[eliminee].name);
+    msgln!(cs);
 
-    // Game is over if only one cook is left.
+    // Game is ocs if only one cook is left.
     if world.cooks_in_game.len() == 1 {
-        end(world, v);
+        end(world, cs);
 
     // Go on otherwise.
     } else {
-        slaughter(world, v);
+        slaughter(world, cs);
     }
 }
 
 /// Make a cook cook a zuppa for a particular judge.
-fn cook_interaction(v: &mut impl View, world: &World, judge_k: JudgeKey, cook_k: CookKey) -> Zuppa {
+fn cook_interaction(cs: &mut Connections, world: &World, judge_k: JudgeKey, cook_k: CookKey) -> Zuppa {
     let cook = &world.cooks[cook_k];
     let judge = &world.judges[judge_k];
 
-    msgln!(v, "{} is cooking for {}!", cook.name, judge.name);
+    msgln!(cs, "{} is cooking for {}!", cook.name, judge.name);
 
     match cook.contr {
         Contr::Cpu => {
-            // TODO: use more advanced CPUs.
+            // TODO: use more adcs CPUs.
             Zuppa {
                 author: cook_k,
                 ingredients: vec!["silicon".into()],
@@ -105,7 +142,7 @@ fn cook_interaction(v: &mut impl View, world: &World, judge_k: JudgeKey, cook_k:
             };
 
             loop {
-                msg!(v, "> ");
+                msg!(cs, "> ");
                 let command: String = read!("{}\n");
 
                 match command.as_str() {
@@ -120,7 +157,7 @@ fn cook_interaction(v: &mut impl View, world: &World, judge_k: JudgeKey, cook_k:
 }
 
 /// Make a judge judge a particular zuppa from a particular cook.
-fn judge_interaction(v: &mut impl View, world: &World, judge_k: JudgeKey, zuppa: Zuppa) -> Score {
+fn judge_interaction(cs: &mut Connections, world: &World, judge_k: JudgeKey, zuppa: Zuppa) -> Score {
     let judge = &world.judges[judge_k];
 
     // Judgement score is calculated and used for extracting the right judgement catchphrase.
@@ -133,19 +170,23 @@ fn judge_interaction(v: &mut impl View, world: &World, judge_k: JudgeKey, zuppa:
     };
     let judgement = judge.phrases.generate(world, ctx);
 
-    msgln!(v, "{} [{}]", judgement, score);
+    msgln!(cs, "{} [{}]", judgement, score);
 
     score
 }
 
-fn end(world: &World, v: &mut impl View) {
+fn end(world: &World, cs: &mut Connections) {
     let winner = &world.cooks[*world
         .cooks_in_game
         .iter()
         .single()
         .expect("Wrong number of winners at game end")];
 
-    msgln!(v, "The winner of this Zuppa tournament is: {}", winner.name);
+    msgln!(
+        cs,
+        "The winner of this Zuppa tournament is: {}",
+        winner.name
+    );
 
     // No state transition means program termination.
 }

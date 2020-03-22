@@ -1,9 +1,4 @@
-mod world;
-mod phrases;
-mod phases;
-mod view;
-mod noun;
-
+use world::*;
 use view::simple_term::*;
 
 fn main() {

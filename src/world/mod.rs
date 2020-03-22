@@ -4,11 +4,25 @@ pub mod zuppa;
 use crate::phrases::*;
 use itertools::Itertools;
 use ron;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use zuppa::*;
 use std::iter::FromIterator;
 use crate::noun::{Gender, Noun};
+
+/// Generic actor ke; can be used to reference any game actor.
+#[derive(Deserialize)]
+pub enum ActorKey {
+    JudgeKey(JudgeKey),
+    CookKey(CookKey),
+}
+
+/// Possible role an actor can play in game.
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+pub enum Role {
+    Cook,
+    Judge,
+}
 
 /// Controlling entity.
 #[derive(Deserialize)]
@@ -39,6 +53,7 @@ pub type CookKey = usize;
 pub struct Judge {
     pub name: String,
     pub phrases: Phrases,
+    pub gender: Gender,
 }
 
 impl Judge {
@@ -108,7 +123,21 @@ impl World {
         }
     }
 
-    /// Pick a judge at random
+    /// Add a judge or a cook.
+    /// TODO: Eri quì CICCIOCACCA.
+    /// TODO: Organizza meglio sta cosa degli actors... probabilmente è meglio fare un refactor
+    ///       stile DOD.
+    pub fn add_actor(&mut self, name: &str, role: Role) -> Result<ActorKey, &'static str> {
+        match role {
+            Role::Cook => {
+                self.cooks.push(Cook {});
+            }
+        }
+
+        Ok
+    }
+
+    /// Pick a judge at random.
     pub fn pick_random_judge(&self) -> JudgeKey {
         use rand::Rng;
         rand::thread_rng().gen_range(0, self.judges.len())
