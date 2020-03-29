@@ -20,3 +20,5 @@ wc = { git = "https://github.com/Bietola/wc" }
 log = "0.4.8"
 log4rs = "0.10.0"
 terview = { path = "terview" }
+async-std = "1.5.0"
+futures = "0.3.4"

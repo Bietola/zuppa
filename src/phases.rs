@@ -1,10 +1,11 @@
-use super::connection::Connection;
 use super::world::{zuppa::*, *};
 use crate::phrases;
 use single::Single;
 use std::collections::HashMap;
 use text_io::read;
-use super::netmsg::NetMsg;
+use super::netmsg;
+use super::netutils::{Sender, Receiver};
+use futures::sink::SinkExt;
 
 // Commands used in zuppa cooking interaction.
 const EXIT_COMMAND: &str = "exit";
@@ -14,7 +15,8 @@ const EXIT_COMMAND: &str = "exit";
 /****************************/
 
 // All connections indexed by their character keys for quick retrieval in game.
-type Connections = HashMap<ActorKey, Connection>;
+type NetMsg = netmsg::NetMsg<String>;
+type Connections = HashMap<ActorKey, Sender<NetMsg>>;
 
 // Macros for convient simple message broadcasting and sending.
 macro_rules! msg {

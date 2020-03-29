@@ -1,7 +1,7 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Simple gender enum.
-#[derive(Deserialize, Clone, Copy)]
+#[derive(Clone, Copy, Deserialize, Serialize)]
 pub enum Gender {
     Neuter,
     Female,
@@ -22,6 +22,7 @@ pub trait Noun {
         match self.get_gender() {
             Gender::Male => "he",
             Gender::Female => "she",
+            Gender::Neuter => "it",
         }
     }
 
@@ -29,6 +30,7 @@ pub trait Noun {
         match self.get_gender() {
             Gender::Male => "his",
             Gender::Female => "her",
+            Gender::Neuter => "its",
         }
     }
 }

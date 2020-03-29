@@ -1,14 +1,14 @@
 pub mod builder;
 pub mod zuppa;
 
+use crate::noun::{Gender, Noun};
 use crate::phrases::*;
 use itertools::Itertools;
 use ron;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use zuppa::*;
 use std::iter::FromIterator;
-use crate::noun::{Gender, Noun};
+use zuppa::*;
 
 /// Generic actor ke; can be used to reference any game actor.
 #[derive(Deserialize)]
@@ -24,15 +24,21 @@ pub enum Role {
     Judge,
 }
 
+/// Cook or judge.
+pub enum Actor {
+    Cook(Cook),
+    Judge(Judge),
+}
+
 /// Controlling entity.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub enum Contr {
     Cpu,
     Player,
 }
 
 /// Cook entity.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct Cook {
     pub name: String,
     pub contr: Contr,
@@ -48,7 +54,7 @@ impl Noun for Cook {
 pub type CookKey = usize;
 
 /// Judge entity.
-#[derive(Default, Deserialize)]
+#[derive(Default, Deserialize, Serialize)]
 #[serde(default)]
 pub struct Judge {
     pub name: String,
@@ -72,7 +78,7 @@ pub type JudgeKey = usize;
 pub type Score = u32;
 
 /// The player ranking
-#[derive(Clone, Default, Deserialize)]
+#[derive(Clone, Default, Deserialize, Serialize)]
 pub struct Ranking {
     pub data: HashMap<CookKey, Score>,
 }
@@ -103,7 +109,7 @@ impl FromIterator<(CookKey, Score)> for Ranking {
 }
 
 /// Entire state of the game world.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct World {
     pub cooks: Vec<Cook>,
     pub cooks_in_game: Vec<CookKey>,
@@ -123,18 +129,18 @@ impl World {
         }
     }
 
-    /// Add a judge or a cook.
-    /// TODO: Eri quì CICCIOCACCA.
-    /// TODO: Organizza meglio sta cosa degli actors... probabilmente è meglio fare un refactor
-    ///       stile DOD.
-    pub fn add_actor(&mut self, name: &str, role: Role) -> Result<ActorKey, &'static str> {
-        match role {
-            Role::Cook => {
-                self.cooks.push(Cook {});
+    /// Add either cook or jduge to world.
+    pub fn add_actor(&mut self, actor: Actor) -> ActorKey {
+        match actor {
+            Actor::Cook(cook) => {
+                self.cooks.push(cook);
+                ActorKey::CookKey(self.cooks.len() - 1)
+            }
+            Actor::Judge(judge) => {
+                self.judges.push(judge);
+                ActorKey::JudgeKey(self.judges.len() - 1)
             }
         }
-
-        Ok
     }
 
     /// Pick a judge at random.

@@ -1,50 +1,31 @@
-use log::error;
-use std::net::TcpListener;
-use text_io::read;
-use zuppa::connection::*;
+use async_std::{prelude::*, net::{TcpListener, ToSocketAddrs}, task};
+use zuppa::netutils::Result;
 
-fn main() {
-    // Initialize game.
-    use zuppa::world::builder::Builder;
-    let mut world = Builder::new()
-        // TODO: add this to check for actors in config files with replicated usernames.
-        // .using_server_warnings()
-        .with_players_file("assets/players.ron")
-        .with_phrases_dir("assets/phrases")
-        .map(Builder::build)
-        .expect("Error while building world.");
+/// Accept new connections and register them into the game (or reject them if necessary).
+async fn acceptance_loop(addr: impl ToSocketAddrs) -> Result<()> {
+    let listener = TcpListener::bind(addr).await?;
 
-    // All player connections.
-    let connections = vec![];
+    while let Some(stream) = listener.incoming().next().await {
+        let mut stream = stream?;
 
-    let listener = TcpListener::bind("127.0.0:8787").unwrap();
+        println!("Connection: {:?}", stream);
 
-    // Thread handling client registrations.
-    let handle = std::thread::spawn(|| {
-        for stream in listener.incoming() {
-            let stream = stream.unwrap();
-
-            let new_connection = register_connection(stream, world);
-            connections.push(new_connection);
-        }
-    });
-
-    // Server command prompt.
-    loop {
-        println!("> ");
-        let command = read!("{}\n");
-
-        // TODO: make command parsing more sophisticated...
-        if command == "exit" || command == "quit" {
-            error!("Shutting down server...");
-            return;
-        } else if command == "start" {
-            break;
-        } else {
-            println!("Invalid command: {}", command);
-        }
+        stream.write_all(b"hello");
     }
 
-    // Start game.
-    zuppa::phases::intro(world, connections.into_iter().map(|c| (cconnection, )));
+    Ok(())
+}
+
+fn main() -> Result<()> {
+    // // Initialize game.
+    // use zuppa::world::builder::Builder;
+    // let mut world = Builder::new()
+    //     // TODO: add this to check for actors in config files with replicated usernames.
+    //     // .using_server_warnings()
+    //     .with_players_file("assets/players.ron")
+    //     .with_phrases_dir("assets/phrases")
+    //     .map(Builder::build)
+    //     .expect("Error while building world.");
+
+    task::block_on(acceptance_loop("127.0.0.1:8080"))
 }

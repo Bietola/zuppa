@@ -1,4 +1,4 @@
-use serde::{Deserialize, de::DeserializeOwned, Serialize};
+use serde::{Deserialize, Serialize};
 
 /***********/
 /* Message */
@@ -23,8 +23,8 @@ where
 /* View */
 /********/
 pub trait View {
-    fn show_msg<'a>(&mut self, msg: impl Message);
-    fn show_msgln<'a>(&mut self, msg: impl Message);
+    fn show_msg(&mut self, msg: impl Message);
+    fn show_msgln(&mut self, msg: impl Message);
 }
 
 /***************/
@@ -33,46 +33,30 @@ pub trait View {
 
 #[macro_export]
 macro_rules! msg {
-    ($views:expr, $fmt_str:expr, $( $fmt_arg:expr ),*) => {
-        $views.iter_mut().for_each(|mut v| v.show_msg(&format!($fmt_str, $($fmt_arg,)*)));
+    ($view:expr, $fmt_str:expr, $( $fmt_arg:expr ),*) => {
+        $view.show_msg(format!($fmt_str, $($fmt_arg,)*));
     };
 
-    ($views:expr, $fmt_str:expr) => {
-        msg!($views, "{}", $fmt_str);
+    ($view:expr, $fmt_str:expr) => {
+        msg!($view, "{}", $fmt_str);
     };
 
-    ($views:expr) => {
-        msg!($views, "");
+    ($view:expr) => {
+        msg!($view, "");
     };
 }
 
 #[macro_export]
 macro_rules! msgln {
-    ($views:expr, $fmt_str:expr, $( $fmt_arg:expr ),*) => {
-        $views.iter_mut().for_each(|v| v.show_msgln(&format!($fmt_str, $($fmt_arg,)*)));
+    ($view:expr, $fmt_str:expr, $( $fmt_arg:expr ),*) => {
+        $view.show_msgln(format!($fmt_str, $($fmt_arg,)*));
     };
 
-    ($views:expr, $fmt_str:expr) => {
-        msgln!($views, "{}", $fmt_str);
+    ($view:expr, $fmt_str:expr) => {
+        msgln!($view, "{}", $fmt_str);
     };
 
-    ($views:expr) => {
-        msgln!($views, "");
+    ($view:expr) => {
+        msgln!($view, "");
     };
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn macro_test() {
-        use crate::simple_term::SimpleTermView;
-
-        let mut views: Vec<_> = std::iter::repeat(SimpleTermView).take(3).collect();
-
-        msgln!(views, "hello there {}{}", "world", "!");
-
-        assert!(true);
-    }
 }

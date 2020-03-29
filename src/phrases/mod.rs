@@ -2,7 +2,7 @@ use crate::noun::Noun;
 use crate::world::*;
 use lazy_static::*;
 use regex::Regex;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// All the info from a zuppa interaction needed to deparameterize a phrase.
 #[derive(Clone)]
@@ -23,7 +23,7 @@ impl PropMods {
 }
 
 /// All the prhases a judge might use to judge a zuppa.
-#[derive(Default, Debug, PartialEq, Deserialize)]
+#[derive(Default, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Phrases {
     phrases: Vec<(Score, String)>,
 }
